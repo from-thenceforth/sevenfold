@@ -5,7 +5,7 @@ grammar;
 Token = {
     Identifier,
     Boolean,
-    Number,
+    // Number,
     Character,
     String,
     "(",
@@ -54,9 +54,10 @@ VerticalLine = {
 
 Comment = {
     SemicolonComment,
-    HashComment,
+    // HashComment,
     "#;" IntertokenSpace Datum,
 }
+Datum = { "tk" }
 
 SemicolonComment = {
     ";" SemicolonCommentChar* LineEnding,
@@ -125,7 +126,7 @@ Digit = { r"[0-9]" }
 HexDigit = { Digit, r"[a-fA-F]" }
 ExplicitSign = { "+", "-" }
 SpecialSubsequent = { ExplicitSign, ".", "@" }
-InlineHexEscape = { "\x" HexScalarValue ";" }
+InlineHexEscape = { "\\x" HexScalarValue ";" }
 HexScalarValue = { HexDigit+ }
 MnemonicEscape = { r"\\[abtnr]" }
 
@@ -162,6 +163,9 @@ Character = {
     "#\\x" HexScalarValue,
 }
 
+AnyChar = { r"." }
+
+
 CharacterName = {
     "alarm",
     "backspace",
@@ -179,7 +183,7 @@ String = {
 }
 
 StringElement = {
-    r"[.&&[^\\\"]]",
+    r"[.&&[^\\\x22]]",
     MnemonicEscape,
     "\\\"",
     "\\\\",
@@ -192,76 +196,79 @@ ByteVector = {
     "#u8(" Byte* ")",
 }
 
-Byte = Number
 
-Number = {
-    Num2,
-    Num8,
-    Num10,
-    Num16,
-}
-
-NumR = { PrefixR ComplexR }
-PrefixR = { 
-    RadixR Exactness,
-    Exactness RadixR,
-}
-ComplexR = { 
-    RealR,
-    RealR "@" RealR,
-    RealR "+" URealR "i",
-    RealR "-" URealR "i",
-    RealR "+i",
-    RealR "-i",
-    RealR InfNan "i",
-    "+" URealR "i",
-    "-" URealR "i",
-    InfNan "i",
-    "+i",
-    "-i",
-}
-
-RealR = { 
-    Sign URealR, 
-    InfNan
-}
-
-URealR = { 
-    UIntegerR, 
-    UIntegerR "/" UIntegerR,
-    DecimalR
-}
-
-UIntegerR = { DigitR+ }
-
-DigitR = { Digit2+, Digit8+, Digit10+, Digit16+ }
+Byte = { "42" }
 
 
-Digit2 = { r"[0-1]" }
-Digit8 = { r"[0-7]" }
-Digit10 = { Digit }
-Decimal10 = { 
-    UInteger10 Suffix, 
-    "." Digit10+ Suffix,
-    Digit10+ "." Digit10* Suffix,
-}
-Digit16 = { 
-    Digit10,
-     r"[a-fA-F]"
-}
-InfNan = { "+inf.0", "-inf.0", "+nan.0", "-nan.0" }
-Suffix = { 
-    Empty,
-    ExponentMarker Sign Digit10+
-}
-
-ExponentMarker = { "e" }
-Exactness = { "#i", "#e", Empty }
-Radix2 = { "#b" }
-Radix8 = { "#o" }
-Radix10 = { "#d", Empty }
-Radix16 = { "#x" }
-
-Sign = { Empty, "+", "-" }
-
-Empty = { "" }
+// Number = {
+//     Num2,
+//     Num8,
+//     Num10,
+//     Num16,
+// }
+// 
+// NumR = { PrefixR ComplexR }
+// PrefixR = { 
+//     RadixR Exactness,
+//     Exactness RadixR,
+// }
+// ComplexR = { 
+//     RealR,
+//     RealR "@" RealR,
+//     RealR "+" URealR "i",
+//     RealR "-" URealR "i",
+//     RealR "+i",
+//     RealR "-i",
+//     RealR InfNan "i",
+//     "+" URealR "i",
+//     "-" URealR "i",
+//     InfNan "i",
+//     "+i",
+//     "-i",
+// }
+// 
+// RealR = { 
+//     Sign URealR, 
+//     InfNan
+// }
+// 
+// URealR = { 
+//     UIntegerR, 
+//     UIntegerR "/" UIntegerR,
+//     DecimalR
+// }
+// 
+// UIntegerR = { DigitR+ }
+// 
+// DigitR = { Digit2+, Digit8+, Digit10+, Digit16+ }
+// 
+// 
+// Digit2 = { r"[0-1]" }
+// Digit8 = { r"[0-7]" }
+// Digit10 = { Digit }
+// Decimal10 = { 
+//     UInteger10 Suffix, 
+//     "." Digit10+ Suffix,
+//     Digit10+ "." Digit10* Suffix,
+// }
+// Digit16 = { 
+//     Digit10,
+//      r"[a-fA-F]"
+// }
+// InfNan = { "+inf.0", "-inf.0", "+nan.0", "-nan.0" }
+// Suffix = { 
+//     Empty,
+//     ExponentMarker Sign Digit10+
+// }
+// 
+// ExponentMarker = { "e" }
+// Exactness = { "#i", "#e", Empty }
+// Radix2 = { "#b" }
+// Radix8 = { "#o" }
+// Radix10 = { "#d", Empty }
+// Radix16 = { "#x" }
+// 
+// Sign = { Empty, "+", "-" }
+// 
+// Empty = { "" }
+// 
