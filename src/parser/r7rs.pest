@@ -35,7 +35,7 @@ return = { "\r" }
 comment = { 
    ";" ~ ANY* ~ line_ending  |
    nested_comment |
-   | "#;" ~ intertoken_space ~ datum 
+   "#;" ~ intertoken_space ~ datum 
 }
 
 nested_comment = {
@@ -70,8 +70,8 @@ initial = {
    special_initial
 }
 letter = {
-   "a".."z" |
-   "A".."Z"
+   'a'..'z' |
+   'A'..'Z'
 }
 special_initial = {
    "!" | "$" | "%" | "&" | "*" | "/" | ":" | "<" | "=" | ">" | "?" | "@" | "^" | "_" | "~"
@@ -80,10 +80,10 @@ subsequent = {
    initial | digit | dot_subsequent | special_subsequent
 }
 digit = {
-   "0".."9"
+   '0'..'9'
 }
 hex_digit = {
-   digit | "a".."f" | "A".."F"
+   digit | 'a'..'f' | 'A'..'F'
 }
 
 explicit_sign = {
@@ -95,7 +95,7 @@ special_subsequent = {
 }
 
 inline_hex_escape = {
-   "\\x" ~ hex_scalar_value ";"
+   "\\x" ~ hex_scalar_value ~ ";"
 }
 
 hex_scalar_value = {
@@ -113,8 +113,8 @@ mnemonic_escape = {
 peculiar_identifier = {
    explicit_sign |
    explicit_sign ~ sign_subsequent ~ subsequent* |
-   explicit_sign "." dot_subsequent ~ subsequent* |
-   "." dot_subsequent ~ subsequent* 
+   explicit_sign ~ "." ~ dot_subsequent ~ subsequent* |
+   "." ~ dot_subsequent ~ subsequent* 
 }
 
 dot_subsequent = {
@@ -137,7 +137,7 @@ boolean = {
 }
 
 character = {
-   "#\\" ANY |
+   "#\\" ~ ANY |
    "#\\" ~ character_name |
    "#\\x" ~ hex_scalar_value
 }
@@ -160,9 +160,9 @@ string = {
 string_element = {
    ANY ~ !( "\"" | "\\") |
    mnemonic_escape |
-   "\\\"" |
-   "\\\\"" |
-   "\\|"" |
+   "\\\"" | // \"
+   "\\\\" | // \\
+   "\\|" | // \|
    "\\" ~ intraline_whitespace* ~ line_ending ~ intraline_whitespace* |
    inline_hex_escape
 }
@@ -171,9 +171,9 @@ bytevector = {
    "#u8(" ~ byte* ~ ")"
 }
 byte = { // Only between 0..255
-   uinteger_2
-   uinteger_8
-   uinteger_10 
+   uinteger_2 |
+   uinteger_8 |
+   uinteger_10 |
    uinteger_16
 }
 
@@ -181,15 +181,11 @@ number = {
    num_2 |
    num_8 |
    num_10 |
-   num_16 |
+   num_16 
 }
 
-num_2
-num_8
-num_10
-num_16
 
-// num_R = { prefix_R complex_R }
+// num_R = { prefix_R ~ complex_R }
 // complex_R = { 
 //    real_R | 
 //    real_R ~ "@" ~ real_R |
@@ -198,8 +194,8 @@ num_16
 //    real_R ~ "+i" |
 //    "-" ~ ureal_R ~ i |
 //    infnan ~ i |
-//    "+" i |
-//    "-" i 
+//    "+" ~ i |
+//    "-" ~ i 
 // }
 // real_R = {
 //    sign ~ ureal_R | infnan
@@ -217,7 +213,7 @@ num_16
 //    exactness ~ radix_R
 // }
 
-num_2 = { prefix_2 complex_2 }
+num_2 = { prefix_2 ~ complex_2 }
 complex_2 = { 
    real_2 | 
    real_2 ~ "@" ~ real_2 |
@@ -226,8 +222,8 @@ complex_2 = {
    real_2 ~ "+i" |
    "-" ~ ureal_2 ~ i |
    infnan ~ i |
-   "+" i |
-   "-" i 
+   "+" ~ i |
+   "-" ~ i 
 }
 real_2 = {
    sign ~ ureal_2 | infnan
@@ -240,11 +236,11 @@ uinteger_2 = {
    digit_2+
 }
 prefix_2 = {
-   radix_2 ~ exactness |
-   exactness ~ radix_2
+   radix_2 ~ exactness? |
+   exactness? ~ radix_2
 }
 
-num_8 = { prefix_8 complex_8 }
+num_8 = { prefix_8 ~ complex_8 }
 complex_8 = { 
    real_8 | 
    real_8 ~ "@" ~ real_8 |
@@ -253,8 +249,8 @@ complex_8 = {
    real_8 ~ "+i" |
    "-" ~ ureal_8 ~ i |
    infnan ~ i |
-   "+" i |
-   "-" i 
+   "+" ~ i |
+   "-" ~ i 
 }
 real_8 = {
    sign ~ ureal_8 | infnan
@@ -267,11 +263,11 @@ uinteger_8 = {
    digit_8+
 }
 prefix_8 = {
-   radix_8 ~ exactness |
-   exactness ~ radix_8
+   radix_8 ~ exactness? |
+   exactness? ~ radix_8
 }
 
-num_10 = { prefix_10 complex_10 }
+num_10 = { prefix_10 ~ complex_10 }
 complex_10 = { 
    real_10 | 
    real_10 ~ "@" ~ real_10 |
@@ -280,26 +276,25 @@ complex_10 = {
    real_10 ~ "+i" |
    "-" ~ ureal_10 ~ i |
    infnan ~ i |
-   "+" i |
-   "-" i 
+   "+" ~ i |
+   "-" ~ i 
 }
 real_10 = {
    sign ~ ureal_10 | infnan
 }
 ureal_10 = {
    uinteger_10 |
-   uinteger_10 ~ "/" ~ uinteger_10
+   uinteger_10 ~ "/" ~ uinteger_10 |
    decimal_10
 }
 uinteger_10 = {
    digit_10+
 }
 prefix_10 = {
-   radix_10 ~ exactness |
-   exactness ~ radix_10
+   radix_10 ~ exactness? 
 }
 
-num_16 = { prefix_16 complex_16 }
+num_16 = { prefix_16 ~ complex_16 }
 complex_16 = { 
    real_16 | 
    real_16 ~ "@" ~ real_16 |
@@ -308,8 +303,8 @@ complex_16 = {
    real_16 ~ "+i" |
    "-" ~ ureal_16 ~ i |
    infnan ~ i |
-   "+" i |
-   "-" i 
+   "+" ~ i |
+   "-" ~ i 
 }
 real_16 = {
    sign ~ ureal_16 | infnan
@@ -322,19 +317,19 @@ uinteger_16 = {
    digit_16+
 }
 prefix_16 = {
-   radix_16 ~ exactness |
-   exactness ~ radix_16
+   radix_16 ~ exactness? |
+   exactness? ~ radix_16
 }
 
-i = { [i"i"] }
+i = { ^"i" }
 infnan = {
-   [i"+inf.0"] | [i"-inf.0"] | [i"+nan.0"] | [i"-nan.0"]
+   ^"+inf.0" | ^"-inf.0" | ^"+nan.0" | ^"-nan.0"
 }
 suffix = {
-   "" |
-   exponent_marker ~ sign ~ uinteger_10+
+   exponent_marker ~ sign ~ uinteger_10+ |
+   "" 
 }
-exponent_marker = { [i"e"]}
+exponent_marker = { ^"e"}
 sign = { 
    "+" |
    "-" |
@@ -342,119 +337,478 @@ sign = {
 }
 
 exactness = {
-   [i"#i"] |
-   [i"#e"] |
-   ""
+   ^"#i" |
+   ^"#e" 
 }
 
-radix_2 = { [i"#b"] }
-radix_8 = { [i"#o"] }
-radix_10 = { [i"#d"] | "" }
-radix_16 = { [i"#x"] }
-digit_2 = { "0".."1" }
-digit_8 = { "0".."7" }
-digit_10 = { "0".."9" }
-digit_16 = { digit_10 | "a".."f" | "A".."F" }
+radix_2 = { ^"#b" }
+radix_8 = { ^"#o" }
+radix_10 = { ^"#d" | "" }
+radix_16 = { ^"#x" }
+digit_2 = { '0'..'1' }
+digit_8 = { '0'..'7' }
+digit_10 = { '0'..'9' }
+digit_16 = { digit_10 | 'a'..'f' | 'A'..'F' }
 
 decimal_10 = {
    uinteger_10 ~ suffix |
    "." ~ digit_10+ ~ suffix |
-   | digit_10+ ~ "." ~ digit_10* ~ suffix |
+   digit_10+ ~ "." ~ digit_10* ~ suffix 
 }
 
 
-datum
-simple_datum
-symbol
-compound_datum
-list
-abbreviation
-abbrev_prefix
-vector
-label
+datum = {
+   simple_datum | 
+   compound_datum |
+   label ~ "=" ~ datum |
+   label ~ "#"
+}
 
-expression
-literal
-self-evaluating
-quotation
-procedure_call
-operator
-operand
-lambda_expression
-formals
-body
-sequence
-command
-conditional
-test
-consequent
-alternate
+simple_datum = {
+   boolean |
+   number |
+   character |
+   string |
+   symbol |
+   bytevector
+}
 
-assignment
+symbol = { identifier }
 
-derived_expression
+compound_datum = {
+   list | 
+   vector | 
+   abbreviation
+}
 
-cond_clause
-recipient
-case_clause
-binding_spec
-mv_binding_spec
-iteration_spec
-case-lambda_clause
-init
-step
-do_result
+list = {
+   "(" ~ datum* ~ ")" |
+   "(" ~ datum+ ~ "." ~ datum ~ ")"
+}
 
-macro_use
-keyword
+abbreviation = {
+   abbrev_prefix ~ datum
+}
+abbrev_prefix = {
+   "'" | "`" | "," | ",@"
+}
 
-macro_block
-syntax_spec
+vector = {
+   "#(" ~ datum* ~ ")"
+}
 
-includer
+label = {
+   "#" ~ uinteger_10
+}
 
-quasiquotation
-qq_template_0
+expression = {
+   identifier |
+   literal |
+   procedure_call |
+   lambda_expression |
+   conditional |
+   assignment |
+   derived_expression |
+   macro_use |
+   macro_block |
+   includer
+}
+literal = { 
+   quotation |
+   self_evaluating
+}
+self_evaluating = {
+   boolean |
+   number |
+   vector |
+   character |
+   string |
+   bytevector
+}
 
-quasiquotation_D
-qq_template_D
-list_qq_template_D
-vector_qq_template_D
-unquotation_D
-qq_template_or_splice_D
-splicing_unquotation_D
+quotation = {
+   "'" ~ datum |
+   "(quote" ~ whitespace+ ~ datum ~ ")" 
+}
+procedure_call = {
+   paren_open ~ operator ~ operand* ~ paren_close 
+}
+operator = { expression }
+operand = { expression }
+lambda_expression = {
+   "(lambda" ~ whitespace+ ~ formals ~ body ~ paren_close 
+}
+formals = {
+   paren_open ~ identifier* ~ paren_close |
+   identifier |
+   paren_open ~ identifier+ ~ "." ~ identifier ~ paren_close 
+}
+paren_open = { "(" ~ whitespace* }
+paren_close = { whitespace* ~ ")" }
+body = {
+   definition* ~ sequence
+}
+sequence  = {
+   command* ~ expression
+}
 
-transformer_spec
-syntax_rule
-pattern
-pattern_datum
-template
-template_element
-template_datum
-pattern_identifier
-ellipsis
-underscore
+command = { expression }
+conditional = {
+   "(if" ~ whitespace+ ~ test ~ consequent ~ alternate ~ paren_close 
+}
+test = { expression }
+consequent = { expression }
+alternate = { expression | "" }
 
-program
-command_or_definition
-definition
-def_formals
-constructor
-field_spec
-field_name
-accessor
-mutator
-syntax_definition
+assignment = {
+   "(set!" ~ whitespace+ ~ identifier ~ expression ~ paren_close
+}
+cond = { "(cond" ~ whitespace+ }
+case = { "(case" ~ whitespace+ }
+let_ = { "(let" ~ whitespace+ }
+derived_expression = {
+   cond ~ cond_clause+ ~ paren_close |
+   cond ~ cond_clause* ~ "(else" ~ whitespace+ ~ sequence ~ paren_close ~ paren_close |
+   case ~ expression ~ case_clause+ ~ paren_close |
+   case ~ expression ~ case_clause* ~ "(else" ~ whitespace+ ~ sequence ~ paren_close ~ paren_close |
+   case ~ expression ~ case_clause* ~ "(else" ~ whitespace+ ~ "=>" ~ whitespace+ ~ 
+      recipient ~ paren_close ~ paren_close |
+   "(and" ~ whitespace+ ~ test* ~ paren_close |
+   "(or" ~ whitespace+ ~ test* ~ paren_close |
+   "(when" ~ whitespace+ ~ test ~ sequence ~ paren_close |
+   "(unless" ~ whitespace+ ~ test ~ sequence ~ paren_close |
+   let_ ~ paren_open ~ binding_spec* ~ paren_close ~ body ~ paren_close |
+   let_ ~ identifier ~ paren_open ~ binding_spec* ~ paren_close ~ body ~ paren_close |
+   "(letrec" ~ whitespace+ ~ paren_open ~ binding_spec* ~ paren_close ~ body ~ paren_close |
+   "(letrec*" ~ whitespace+ ~ paren_open ~ binding_spec* ~ paren_close ~ body ~ paren_close |
+   "(let-values" ~ whitespace+ ~ paren_open ~ mv_binding_spec* ~ paren_close ~ body ~ paren_close |
+   "(let*-values" ~ whitespace+ ~ paren_open ~ mv_binding_spec* ~ paren_close ~ body ~ paren_close |
+   "(begin" ~ whitespace+ ~ sequence ~ paren_close |
+   "(do" ~ whitespace+ ~ paren_open ~ iteration_spec* ~ paren_close ~
+      paren_open ~ test ~ do_result ~ paren_close ~
+      command* ~ paren_close |
+   "(delay" ~ whitespace+ ~ expression ~ paren_close |
+   "(delay-force" ~ whitespace+ ~ expression ~ paren_close |
+   "(parameterize" ~ whitespace+ ~ paren_open ~ ( paren_open ~ expression ~ expression ~ paren_close )* ~ paren_close ~
+      body ~ paren_close |
+   "(guard" ~ whitespace+ ~ paren_open ~ identifier ~ cond_clause* ~ paren_close ~ body ~ paren_close |
+   quasiquotation | 
+   "(case-lambda" ~ whitespace+ ~ case_lambda_clause* ~ paren_close
+}
 
-library
-library_name
-library_name_part
-library_declaration
-import_declaration
-export_spec
-import_set
-cond-expand_clause
-feature_requirement
+cond_clause = {
+   paren_open ~ test ~ sequence ~ paren_close |
+   paren_open ~ test ~ paren_close |
+   paren_open ~ test ~ "=>" ~ recipient ~ paren_close
+}
+
+recipient = { expression }
+case_clause = {
+   paren_open ~ paren_open ~ datum* ~ paren_close ~ sequence ~ paren_close |
+   paren_open ~ paren_open ~ datum* ~ paren_close ~ "=>" ~ recipient ~ paren_close 
+}
+binding_spec = {
+   paren_open ~ identifier ~ expression ~ paren_close 
+}
+mv_binding_spec = {
+   paren_open ~ formals ~ expression ~ paren_close
+}
+
+iteration_spec = {
+   paren_open ~ identifier ~ init ~ step ~ paren_close |
+   paren_open ~ identifier ~ init ~ paren_close 
+}
+
+case_lambda_clause = {
+   paren_open ~ formals ~ body ~ paren_close
+}
+
+init = { expression }
+step = { expression }
+do_result =  { sequence | "" }
+
+macro_use = {
+   paren_open ~ keyword ~ datum* ~ paren_close
+}
+keyword = { identifier }
+
+macro_block = {
+   "(let-syntax" ~ whitespace+ ~ paren_open ~ syntax_spec* ~ paren_close ~ body ~ paren_close |
+   "(letrec-syntax" ~ whitespace+ ~ paren_open ~ syntax_spec* ~ paren_close ~ body ~ paren_close 
+}
+syntax_spec = {
+   paren_open ~ keyword ~ transformer_spec ~ paren_close
+}
+
+includer = {
+   "(include" ~ whitespace+ ~ string+ ~ paren_close |
+   "(include-ci" ~ whitespace+ ~ string+ ~ paren_close
+}
+
+quasiquotation = { quasiquotation_1 }
+
+qq_template_0 = { expression }
+
+// TEMPLATE: We're going to use the same template for all the quasiquotation up to level 3.
+// quasiquotation_D = { 
+//    "`" ~ qq_template_D |
+//    "(quasiquote" ~ whitespace+ ~ qq_template_D ~ paren_close 
+// }
+// qq_template_D = { 
+//    simple_datum |
+//    list_qq_template_D |
+//    vector_qq_template_D |
+//    unquotation_D
+// }
+// list_qq_template_D = {
+//    paren_open ~ qq_template_or_splice_D* ~ paren_close |
+//    paren_open ~ qq_template_or_splice_D* ~ "." ~ whitespace+ ~ qq_template_D ~ paren_close |
+//    "'" ~ qq_template_D |
+//    quasiquotation_D+1
+// }
+// vector_qq_template_D = {
+//    "#(" ~ qq_template_or_splice_D* ~ ")" 
+// }
+// unquotation_D = {
+//    "," ~ qq_template_D-1 |
+//    "(unquote" ~ whitespace+ ~ qq_template_D-1 ~ paren_close |
+// }
+// qq_template_or_splice_D = {
+//    qq_template_D |
+//    splicing_unquotation_D
+// }
+// splicing_unquotation_D = {
+//    ",@" ~ qq_template_D-1 |
+//    "(unquote-splicing" ~ whitespace+ ~ qq_template_D-1 ~ paren_close
+// }
+
+quasiquotation_1 = { 
+   "`" ~ qq_template_1 |
+   "(quasiquote" ~ whitespace+ ~ qq_template_1 ~ paren_close 
+}
+qq_template_1 = { 
+   simple_datum |
+   list_qq_template_1 |
+   vector_qq_template_1 |
+   unquotation_1
+}
+list_qq_template_1 = {
+   paren_open ~ qq_template_or_splice_1* ~ paren_close |
+   paren_open ~ qq_template_or_splice_1* ~ "." ~ whitespace+ ~ qq_template_1 ~ paren_close |
+   "'" ~ qq_template_1 |
+   quasiquotation_2
+}
+vector_qq_template_1 = {
+   "#(" ~ qq_template_or_splice_1* ~ ")" 
+}
+unquotation_1 = {
+   "," ~ qq_template_0 |
+   "(unquote" ~ whitespace+ ~ qq_template_0 ~ paren_close 
+}
+qq_template_or_splice_1 = {
+   qq_template_1 |
+   splicing_unquotation_1
+}
+splicing_unquotation_1 = {
+   ",@" ~ qq_template_0 |
+   "(unquote-splicing" ~ whitespace+ ~ qq_template_0 ~ paren_close
+}
+
+quasiquotation_2 = { 
+   "`" ~ qq_template_2 |
+   "(quasiquote" ~ whitespace+ ~ qq_template_2 ~ paren_close 
+}
+qq_template_2 = { 
+   simple_datum |
+   list_qq_template_2 |
+   vector_qq_template_2 |
+   unquotation_2
+}
+list_qq_template_2 = {
+   paren_open ~ qq_template_or_splice_2* ~ paren_close |
+   paren_open ~ qq_template_or_splice_2* ~ "." ~ whitespace+ ~ qq_template_2 ~ paren_close |
+   "'" ~ qq_template_2 |
+   quasiquotation_3
+}
+vector_qq_template_2 = {
+   "#(" ~ qq_template_or_splice_2* ~ ")" 
+}
+unquotation_2 = {
+   "," ~ qq_template_1 |
+   "(unquote" ~ whitespace+ ~ qq_template_1 ~ paren_close
+}
+qq_template_or_splice_2 = {
+   qq_template_2 |
+   splicing_unquotation_2
+}
+splicing_unquotation_2 = {
+   ",@" ~ qq_template_1 |
+   "(unquote-splicing" ~ whitespace+ ~ qq_template_1 ~ paren_close
+}
+
+quasiquotation_3 = { 
+   "`" ~ qq_template_3 |
+   "(quasiquote" ~ whitespace+ ~ qq_template_3 ~ paren_close 
+}
+qq_template_3 = { 
+   simple_datum |
+   list_qq_template_3 |
+   vector_qq_template_3 |
+   unquotation_3
+}
+list_qq_template_3 = {
+   paren_open ~ qq_template_or_splice_3* ~ paren_close |
+   paren_open ~ qq_template_or_splice_3* ~ "." ~ whitespace+ ~ qq_template_3 ~ paren_close |
+   "'" ~ qq_template_3 |
+   quasiquotation_4
+}
+vector_qq_template_3 = {
+   "#(" ~ qq_template_or_splice_3* ~ ")" 
+}
+unquotation_3 = {
+   "," ~ qq_template_2 |
+   "(unquote" ~ whitespace+ ~ qq_template_2 ~ paren_close 
+}
+qq_template_or_splice_3 = {
+   qq_template_3 |
+   splicing_unquotation_3
+}
+splicing_unquotation_3 = {
+   ",@" ~ qq_template_2 |
+   "(unquote-splicing" ~ whitespace+ ~ qq_template_2 ~ paren_close
+}
+
+// Force abort of parsing at this depth.
+quasiquotation_4 = { EOI }
+
+
+transformer_spec = {
+   "(syntax-rules" ~ whitespace+ ~ paren_open ~ identifier* ~ paren_close ~ whitespace+ ~ syntax_rule* ~ paren_close |
+   "(syntax-rules" ~ whitespace+ ~ identifier ~ paren_open ~ identifier* ~ paren_close ~ whitespace+ ~ syntax_rule* ~ paren_close
+}
+syntax_rule = {
+   paren_open ~ pattern ~ whitespace+ ~ template ~ paren_close
+}
+pattern = {
+   pattern_identifier |
+   "_" |
+   paren_open ~ pattern* ~ paren_close |
+   paren_open ~ pattern+ ~ "." ~ whitespace+ ~ pattern ~ paren_close |
+   paren_open ~ pattern* ~ pattern ~ "..." ~ pattern* ~ paren_close |
+   paren_open ~ pattern* ~ pattern ~ "..." ~ pattern* ~ "." ~ pattern ~ paren_close |
+   "#(" ~ whitespace* ~ pattern* ~ paren_close |
+   "#(" ~ whitespace* ~ pattern* ~ pattern ~ "..." ~ pattern* ~ paren_close 
+}
+pattern_datum = { 
+   string |
+   character |
+   boolean |
+   number |
+   bytevector
+}
+
+template = {
+   pattern_identifier |
+   paren_open ~ template_element* ~ paren_close |
+   paren_open ~ template_element+ ~ "." ~ whitespace+ ~ template ~ paren_close |
+   "#(" ~ whitespace* ~ template_element* ~ paren_close 
+}
+template_element = {
+   template |
+   template ~ ellipsis
+}
+
+template_datum = { pattern_datum }
+pattern_identifier = { identifier ~ !(ellipsis) }
+ellipsis = {"..."}
+underscore = { "_" }
+
+program = {
+   import_declaration+ ~ command_or_definition+
+}
+command_or_definition = {
+   command |
+   definition |
+   "(begin" ~ whitespace+ ~ command_or_definition+ ~ paren_close
+}
+
+definition = {
+   "(define" ~ whitespace+ ~ identifier ~ whitespace+ ~ expression ~ paren_close |
+   "(define" ~ whitespace+ ~ paren_open ~ identifier ~ def_formals ~ paren_close ~ body ~ paren_close |
+   syntax_definition |
+   "(define-values" ~ whitespace+ ~ formals ~ body ~ paren_close |
+   "(define-record-type" ~ whitespace+ ~ identifier ~ constructor ~ identifier ~ field_spec* ~ paren_close |
+   "(begin" ~ whitespace+ ~ definition* ~ paren_close
+}
+
+def_formals = {
+   identifier* ~ "." ~ identifier |
+   identifier* 
+}
+constructor = {
+   paren_open ~ identifier ~ field_name* ~ paren_close
+}
+field_spec = {
+   paren_open ~ identifier ~ field_name ~ accessor ~ paren_close |
+   paren_open ~ identifier ~ field_name ~ accessor ~ mutator ~ paren_close
+}
+field_name = {
+   identifier
+}
+accessor = {
+   identifier
+}
+mutator = {
+   identifier
+}
+syntax_definition = {
+   "(define-syntax" ~ whitespace+ ~ keyword ~ transformer_spec ~ paren_close 
+}
+
+library = {
+   "(define-library" ~ library_name ~ library_declaration* ~ paren_close
+}
+library_name = {
+   paren_open ~ library_name_part+ ~ paren_close 
+}
+library_name_part = {
+   identifier | 
+   uinteger_10
+}
+library_declaration = {
+   "(export" ~ whitespace+ ~ export_spec* ~ paren_close |
+   import_declaration |
+   "(begin" ~ whitespace+ ~ command_or_definition* ~ paren_close |
+   includer |
+   "(include-library-declarations" ~ whitespace+ ~ string+ ~ paren_close |
+   "(cond-expand" ~ whitespace+ ~ cond_expand_clause+  ~ paren_close |
+   "(cond-expand" ~ whitespace+ ~ cond_expand_clause+  ~ "(else" ~ library_declaration* ~ paren_close ~ paren_close 
+}
+import_declaration = {
+   "(import" ~ import_set+  ~ paren_close 
+}
+
+export_spec = {
+   identifier |
+   "(rename" ~ whitespace+ ~ identifier ~ whitespace+ ~ identifier ~ paren_close
+}
+import_set = {
+   library_name |
+   "(only" ~ whitespace+ ~ import_set ~ whitespace+ ~ identifier+ ~ paren_close |
+   "(execpt" ~ whitespace+ ~ import_set ~ whitespace+ ~ identifier+ ~ paren_close |
+   "(prefix" ~ whitespace+ ~ import_set ~ whitespace+ ~ identifier ~ paren_close |
+   "(rename" ~ whitespace+ ~ import_set ~ whitespace+ ~ (paren_open ~ identifier ~ identifier ~ paren_close)+ ~ paren_close 
+}
+cond_expand_clause = {
+   paren_open ~ feature_requirement ~ library_declaration* ~ paren_close
+}
+feature_requirement = {
+   identifier |
+   "(library" ~ whitespace+ ~ library_name ~ paren_close |
+   "(and" ~ whitespace+ ~ feature_requirement* ~ paren_close |
+   "(or" ~ whitespace+ ~ feature_requirement* ~ paren_close |
+   "(not" ~ whitespace+ ~ feature_requirement ~ paren_close
+}
 
 
 
