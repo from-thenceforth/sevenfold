@@ -1,75 +1,75 @@
-token 
+token
 delimiter
-intraline whitespace
-whitespace 
-vertical line 
-line ending
-comment 
-nested comment 
-comment text 
-directive 
-atomosphere 
-intertoken space 
-identifier 
-initial 
-letter 
-special initial 
-subsequent 
-digit 
-hex digit 
-explicit sign 
-special subsequent 
-inline hex escape 
-hex scalar value 
-mnemonic escape 
-peculiar identifier 
-dot subsequent
-sign subsequent
-symbol element
-boolean 
-character 
-character name
-string 
-string element 
-bytevector 
-byte 
-number 
-num 2
-num 8
-num 10 
-num 16 
+intraline_whitespace
+whitespace
+vertical_line
+line_ending
+comment
+nested_comment
+comment_text
+directive
+atomosphere
+intertoken_space
+identifier
+initial
+letter
+special_initial
+subsequent
+digit
+hex_digit
+explicit_sign
+special_subsequent
+inline_hex_escape
+hex_scalar_value
+mnemonic_escape
+peculiar_identifier
+dot_subsequent
+sign_subsequent
+symbol_element
+boolean
+character
+character_name
+string
+string_element
+bytevector
+byte
+number
+num_2
+num_8
+num_10
+num_16
 
-num R
-complex R
-real R
-ureal R
-uinteger R 
-prefix R
+num_R
+complex_R
+real_R
+ureal_R
+uinteger_R
+prefix_R
 
-infnan 
+infnan
 suffix
-exponent marker
+exponent_marker
 sign
-exactness 
+exactness
 
-radix 2
-radix 8
-radix 10
-radix 16
-digit 2
-digit 8
-digit 10
-digit 16
+radix_2
+radix_8
+radix_10
+radix_16
+digit_2
+digit_8
+digit_10
+digit_16
 
-decimal 10
+decimal_10
 
 datum
-simple datum
+simple_datum
 symbol
-compound datum
+compound_datum
 list
 abbreviation
-abbrev prefix
+abbrev_prefix
 vector
 label
 
@@ -77,10 +77,10 @@ expression
 literal
 self-evaluating
 quotation
-procedure call
+procedure_call
 operator
 operand
-lambda expression
+lambda_expression
 formals
 body
 sequence
@@ -92,69 +92,69 @@ alternate
 
 assignment
 
-derived expression
+derived_expression
 
-cond clause
+cond_clause
 recipient
-case clause
-binding spec
-mv binding spec
-iteration spec
-case-lambda clause
+case_clause
+binding_spec
+mv_binding_spec
+iteration_spec
+case-lambda_clause
 init
 step
-do result
+do_result
 
-macro use
+macro_use
 keyword
 
-macro block
-syntax spec
+macro_block
+syntax_spec
 
 includer
 
 quasiquotation
-qq template 0
+qq_template_0
 
-quasiquotation D
-qq template D
-list qq template D
-vector qq template D
-unquotation D
-qq template or splice D
-splicing unquotation D
+quasiquotation_D
+qq_template_D
+list_qq_template_D
+vector_qq_template_D
+unquotation_D
+qq_template_or_splice_D
+splicing_unquotation_D
 
-transformer spec
-syntax rule
+transformer_spec
+syntax_rule
 pattern
-pattern datum
+pattern_datum
 template
-template element
-template datum
-pattern identifier
+template_element
+template_datum
+pattern_identifier
 ellipsis
 underscore
 
 program
-command or definition
+command_or_definition
 definition
-def formals
+def_formals
 constructor
-field spec
-field name
+field_spec
+field_name
 accessor
 mutator
-syntax definition
+syntax_definition
 
 library
-library name
-library name part
-library declaration
-import declaration
-export spec
-import set
-cond-expand clause
-feature requirement
+library_name
+library_name_part
+library_declaration
+import_declaration
+export_spec
+import_set
+cond-expand_clause
+feature_requirement
 
 
 
