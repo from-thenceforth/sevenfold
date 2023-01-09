@@ -1,4 +1,20 @@
-token
+token = {
+   identifier |
+   boolean |
+   number |
+   character |
+   string |
+   "(" | 
+   ")" |
+   "#(" |
+   "#u8(" |
+   "'" |
+   "`" |
+   "," |
+   ",@" |
+   "."
+}
+
 delimiter
 intraline_whitespace
 whitespace
