@@ -15,69 +15,353 @@ token = {
    "."
 }
 
-delimiter
-intraline_whitespace
-whitespace
-vertical_line
-line_ending
-comment
-nested_comment
-comment_text
-directive
-atomosphere
-intertoken_space
-identifier
-initial
-letter
-special_initial
-subsequent
-digit
-hex_digit
-explicit_sign
-special_subsequent
-inline_hex_escape
-hex_scalar_value
-mnemonic_escape
-peculiar_identifier
-dot_subsequent
-sign_subsequent
-symbol_element
-boolean
-character
-character_name
-string
-string_element
-bytevector
-byte
-number
+delimiter = {
+   whitespace |
+   vertical_line |
+   "(" |
+   ")" |
+   "\"" |
+   ";"
+}
+
+intraline_whitespace = { " " | "\t" }
+whitespace = { intraline_whitespace | line_ending }
+vertical_line = { "|" }
+
+line_ending = { newline | return ~ newline | return }
+newline = { "\n" }
+return = { "\r" }
+
+comment = { 
+   ";" ~ ANY* ~ line_ending  |
+   nested_comment |
+   | "#;" ~ intertoken_space ~ datum 
+}
+
+nested_comment = {
+   "#|" ~ comment_text ~ comment_cont* ~ "|#"
+}
+comment_text = { ANY* ~ !("#|" | "|#") }
+comment_cont = {
+   nested_comment ~ comment_text
+}
+directive = {
+   "#!fold-case" | "#!no-fold-case"
+}
+
+atomosphere = { 
+   whitespace |
+   comment | 
+   directive
+}
+
+intertoken_space = { 
+   atomosphere*
+}
+
+identifier = {
+   initial ~ subsequent* | 
+   vertical_line ~ symbol_element* ~ vertical_line |
+   peculiar_identifier
+}
+
+initial = {
+   letter | 
+   special_initial
+}
+letter = {
+   "a".."z" |
+   "A".."Z"
+}
+special_initial = {
+   "!" | "$" | "%" | "&" | "*" | "/" | ":" | "<" | "=" | ">" | "?" | "@" | "^" | "_" | "~"
+}
+subsequent = {
+   initial | digit | dot_subsequent | special_subsequent
+}
+digit = {
+   "0".."9"
+}
+hex_digit = {
+   digit | "a".."f" | "A".."F"
+}
+
+explicit_sign = {
+   "+" | "-"
+}
+
+special_subsequent = {
+   explicit_sign | "." | "@" 
+}
+
+inline_hex_escape = {
+   "\\x" ~ hex_scalar_value ";"
+}
+
+hex_scalar_value = {
+   hex_digit+
+}
+
+mnemonic_escape = {
+   "\\a" | 
+   "\\b" |
+   "\\t" |
+   "\\n" |
+   "\\r" 
+}
+
+peculiar_identifier = {
+   explicit_sign |
+   explicit_sign ~ sign_subsequent ~ subsequent* |
+   explicit_sign "." dot_subsequent ~ subsequent* |
+   "." dot_subsequent ~ subsequent* 
+}
+
+dot_subsequent = {
+   sign_subsequent | "."
+}
+
+sign_subsequent = {
+   initial | explicit_sign | "@"
+}
+
+symbol_element = {
+   ANY ~ !(vertical_line| "\\") |
+   inline_hex_escape | 
+   mnemonic_escape | 
+   "\\|"
+}
+
+boolean = {
+   "#t" | "#f" | "#true" | "#false"
+}
+
+character = {
+   "#\\" ANY |
+   "#\\" ~ character_name |
+   "#\\x" ~ hex_scalar_value
+}
+
+character_name = {
+   "alarm" |
+   "backspace" |
+   "delete" |
+   "escape" |
+   "newline" |
+   "null" |
+   "return" |
+   "space" |
+   "tab"
+}
+string = {
+   "\"" ~ string_element* ~ "\""
+}
+
+string_element = {
+   ANY ~ !( "\"" | "\\") |
+   mnemonic_escape |
+   "\\\"" |
+   "\\\\"" |
+   "\\|"" |
+   "\\" ~ intraline_whitespace* ~ line_ending ~ intraline_whitespace* |
+   inline_hex_escape
+}
+
+bytevector = {
+   "#u8(" ~ byte* ~ ")"
+}
+byte = { // Only between 0..255
+   uinteger_2
+   uinteger_8
+   uinteger_10 
+   uinteger_16
+}
+
+number = {
+   num_2 |
+   num_8 |
+   num_10 |
+   num_16 |
+}
+
 num_2
 num_8
 num_10
 num_16
 
-num_R
-complex_R
-real_R
-ureal_R
-uinteger_R
-prefix_R
+// num_R = { prefix_R complex_R }
+// complex_R = { 
+//    real_R | 
+//    real_R ~ "@" ~ real_R |
+//    real_R ~ "+" ~ ureal_R ~ i |
+//    real_R ~ "-" ~ ureal_R ~ i |
+//    real_R ~ "+i" |
+//    "-" ~ ureal_R ~ i |
+//    infnan ~ i |
+//    "+" i |
+//    "-" i 
+// }
+// real_R = {
+//    sign ~ ureal_R | infnan
+// }
+// ureal_R = {
+//    uinteger_R |
+//    uinteger_R ~ "/" ~ uinteger_R
+//    decimal_10
+// }
+// uinteger_R = {
+//    digit_R+
+// }
+// prefix_R = {
+//    radix_R ~ exactness |
+//    exactness ~ radix_R
+// }
 
-infnan
-suffix
-exponent_marker
-sign
-exactness
+num_2 = { prefix_2 complex_2 }
+complex_2 = { 
+   real_2 | 
+   real_2 ~ "@" ~ real_2 |
+   real_2 ~ "+" ~ ureal_2 ~ i |
+   real_2 ~ "-" ~ ureal_2 ~ i |
+   real_2 ~ "+i" |
+   "-" ~ ureal_2 ~ i |
+   infnan ~ i |
+   "+" i |
+   "-" i 
+}
+real_2 = {
+   sign ~ ureal_2 | infnan
+}
+ureal_2 = {
+   uinteger_2 |
+   uinteger_2 ~ "/" ~ uinteger_2
+}
+uinteger_2 = {
+   digit_2+
+}
+prefix_2 = {
+   radix_2 ~ exactness |
+   exactness ~ radix_2
+}
 
-radix_2
-radix_8
-radix_10
-radix_16
-digit_2
-digit_8
-digit_10
-digit_16
+num_8 = { prefix_8 complex_8 }
+complex_8 = { 
+   real_8 | 
+   real_8 ~ "@" ~ real_8 |
+   real_8 ~ "+" ~ ureal_8 ~ i |
+   real_8 ~ "-" ~ ureal_8 ~ i |
+   real_8 ~ "+i" |
+   "-" ~ ureal_8 ~ i |
+   infnan ~ i |
+   "+" i |
+   "-" i 
+}
+real_8 = {
+   sign ~ ureal_8 | infnan
+}
+ureal_8 = {
+   uinteger_8 |
+   uinteger_8 ~ "/" ~ uinteger_8
+}
+uinteger_8 = {
+   digit_8+
+}
+prefix_8 = {
+   radix_8 ~ exactness |
+   exactness ~ radix_8
+}
 
-decimal_10
+num_10 = { prefix_10 complex_10 }
+complex_10 = { 
+   real_10 | 
+   real_10 ~ "@" ~ real_10 |
+   real_10 ~ "+" ~ ureal_10 ~ i |
+   real_10 ~ "-" ~ ureal_10 ~ i |
+   real_10 ~ "+i" |
+   "-" ~ ureal_10 ~ i |
+   infnan ~ i |
+   "+" i |
+   "-" i 
+}
+real_10 = {
+   sign ~ ureal_10 | infnan
+}
+ureal_10 = {
+   uinteger_10 |
+   uinteger_10 ~ "/" ~ uinteger_10
+   decimal_10
+}
+uinteger_10 = {
+   digit_10+
+}
+prefix_10 = {
+   radix_10 ~ exactness |
+   exactness ~ radix_10
+}
+
+num_16 = { prefix_16 complex_16 }
+complex_16 = { 
+   real_16 | 
+   real_16 ~ "@" ~ real_16 |
+   real_16 ~ "+" ~ ureal_16 ~ i |
+   real_16 ~ "-" ~ ureal_16 ~ i |
+   real_16 ~ "+i" |
+   "-" ~ ureal_16 ~ i |
+   infnan ~ i |
+   "+" i |
+   "-" i 
+}
+real_16 = {
+   sign ~ ureal_16 | infnan
+}
+ureal_16 = {
+   uinteger_16 |
+   uinteger_16 ~ "/" ~ uinteger_16
+}
+uinteger_16 = {
+   digit_16+
+}
+prefix_16 = {
+   radix_16 ~ exactness |
+   exactness ~ radix_16
+}
+
+i = { [i"i"] }
+infnan = {
+   [i"+inf.0"] | [i"-inf.0"] | [i"+nan.0"] | [i"-nan.0"]
+}
+suffix = {
+   "" |
+   exponent_marker ~ sign ~ uinteger_10+
+}
+exponent_marker = { [i"e"]}
+sign = { 
+   "+" |
+   "-" |
+   "" 
+}
+
+exactness = {
+   [i"#i"] |
+   [i"#e"] |
+   ""
+}
+
+radix_2 = { [i"#b"] }
+radix_8 = { [i"#o"] }
+radix_10 = { [i"#d"] | "" }
+radix_16 = { [i"#x"] }
+digit_2 = { "0".."1" }
+digit_8 = { "0".."7" }
+digit_10 = { "0".."9" }
+digit_16 = { digit_10 | "a".."f" | "A".."F" }
+
+decimal_10 = {
+   uinteger_10 ~ suffix |
+   "." ~ digit_10+ ~ suffix |
+   | digit_10+ ~ "." ~ digit_10* ~ suffix |
+}
+
 
 datum
 simple_datum
