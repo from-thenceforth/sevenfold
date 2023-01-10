@@ -24,13 +24,13 @@ delimiter = {
    ";"
 }
 
-intraline_whitespace = { " " | "\t" }
-whitespace = { intraline_whitespace | line_ending }
+intraline_whitespace = _{ " " | "\t" }
+whitespace = _{ intraline_whitespace | line_ending }
 vertical_line = { "|" }
 
-line_ending = { newline | return ~ newline | return }
-newline = { "\n" }
-return = { "\r" }
+line_ending = _{ newline | return ~ newline | return }
+newline = _{ "\n" }
+return = _{ "\r" }
 
 comment = { 
    ";" ~ ANY* ~ line_ending  |
@@ -402,17 +402,20 @@ label = {
 }
 
 expression = {
-   identifier |
-   literal |
-   procedure_call |
-   lambda_expression |
-   conditional |
-   assignment |
-   derived_expression |
-   macro_use |
-   macro_block |
-   includer
+   whitespace* ~ (  
+                       identifier 
+                     | literal 
+                     | procedure_call 
+                     | lambda_expression 
+                     | conditional 
+                     | assignment 
+                     | derived_expression 
+                     | macro_use 
+                     | macro_block 
+                     | includer
+   ) 
 }
+
 literal = { 
    quotation |
    self_evaluating
@@ -428,23 +431,21 @@ self_evaluating = {
 
 quotation = {
    "'" ~ datum |
-   "(quote" ~ whitespace+ ~ datum ~ ")" 
+   "(quote" ~  datum ~ ")" 
 }
 procedure_call = {
-   paren_open ~ operator ~ operand* ~ paren_close 
+   "(" ~ operator  ~ operand* ~ ")" 
 }
 operator = { expression }
 operand = { expression }
 lambda_expression = {
-   "(lambda" ~ whitespace+ ~ formals ~ body ~ paren_close 
+   "(lambda" ~  formals ~ body ~ ")" 
 }
 formals = {
-   paren_open ~ identifier* ~ paren_close |
+   "(" ~ identifier* ~ ")" |
    identifier |
-   paren_open ~ identifier+ ~ "." ~ identifier ~ paren_close 
+   "(" ~ identifier+ ~ "." ~ identifier ~ ")" 
 }
-paren_open = { "(" ~ whitespace* }
-paren_close = { whitespace* ~ ")" }
 body = {
    definition* ~ sequence
 }
@@ -454,73 +455,71 @@ sequence  = {
 
 command = { expression }
 conditional = {
-   "(if" ~ whitespace+ ~ test ~ consequent ~ alternate ~ paren_close 
+   "(if" ~  test ~ consequent ~ alternate ~ ")" 
 }
 test = { expression }
 consequent = { expression }
 alternate = { expression | "" }
 
 assignment = {
-   "(set!" ~ whitespace+ ~ identifier ~ expression ~ paren_close
+   "(set!" ~  identifier ~ expression ~ ")"
 }
-cond = { "(cond" ~ whitespace+ }
-case = { "(case" ~ whitespace+ }
-let_ = { "(let" ~ whitespace+ }
+
 derived_expression = {
-   cond ~ cond_clause+ ~ paren_close |
-   cond ~ cond_clause* ~ "(else" ~ whitespace+ ~ sequence ~ paren_close ~ paren_close |
-   case ~ expression ~ case_clause+ ~ paren_close |
-   case ~ expression ~ case_clause* ~ "(else" ~ whitespace+ ~ sequence ~ paren_close ~ paren_close |
-   case ~ expression ~ case_clause* ~ "(else" ~ whitespace+ ~ "=>" ~ whitespace+ ~ 
-      recipient ~ paren_close ~ paren_close |
-   "(and" ~ whitespace+ ~ test* ~ paren_close |
-   "(or" ~ whitespace+ ~ test* ~ paren_close |
-   "(when" ~ whitespace+ ~ test ~ sequence ~ paren_close |
-   "(unless" ~ whitespace+ ~ test ~ sequence ~ paren_close |
-   let_ ~ paren_open ~ binding_spec* ~ paren_close ~ body ~ paren_close |
-   let_ ~ identifier ~ paren_open ~ binding_spec* ~ paren_close ~ body ~ paren_close |
-   "(letrec" ~ whitespace+ ~ paren_open ~ binding_spec* ~ paren_close ~ body ~ paren_close |
-   "(letrec*" ~ whitespace+ ~ paren_open ~ binding_spec* ~ paren_close ~ body ~ paren_close |
-   "(let-values" ~ whitespace+ ~ paren_open ~ mv_binding_spec* ~ paren_close ~ body ~ paren_close |
-   "(let*-values" ~ whitespace+ ~ paren_open ~ mv_binding_spec* ~ paren_close ~ body ~ paren_close |
-   "(begin" ~ whitespace+ ~ sequence ~ paren_close |
-   "(do" ~ whitespace+ ~ paren_open ~ iteration_spec* ~ paren_close ~
-      paren_open ~ test ~ do_result ~ paren_close ~
-      command* ~ paren_close |
-   "(delay" ~ whitespace+ ~ expression ~ paren_close |
-   "(delay-force" ~ whitespace+ ~ expression ~ paren_close |
-   "(parameterize" ~ whitespace+ ~ paren_open ~ ( paren_open ~ expression ~ expression ~ paren_close )* ~ paren_close ~
-      body ~ paren_close |
-   "(guard" ~ whitespace+ ~ paren_open ~ identifier ~ cond_clause* ~ paren_close ~ body ~ paren_close |
+   "(cond" ~ cond_clause+ ~ ")" |
+   "(cond" ~ cond_clause* ~ "(else" ~  sequence ~ ")" ~ ")" |
+   "(case" ~ expression ~ case_clause+ ~ ")" |
+   "(case" ~ expression ~ case_clause* ~ "(else" ~  sequence ~ ")" ~ ")" |
+   "(case" ~ expression ~ case_clause* ~ "(else" ~  "=>" ~  
+      recipient ~ ")" ~ ")" |
+   "(and" ~  test* ~ ")" |
+   "(or" ~  test* ~ ")" |
+   "(when" ~  test ~ sequence ~ ")" |
+   "(unless" ~  test ~ sequence ~ ")" |
+   "(let" ~ "(" ~ binding_spec* ~ ")" ~ body ~ ")" |
+   "(let" ~ identifier ~ "(" ~ binding_spec* ~ ")" ~ body ~ ")" |
+   "(letrec" ~  "(" ~ binding_spec* ~ ")" ~ body ~ ")" |
+   "(letrec*" ~  "(" ~ binding_spec* ~ ")" ~ body ~ ")" |
+   "(let-values" ~  "(" ~ mv_binding_spec* ~ ")" ~ body ~ ")" |
+   "(let*-values" ~  "(" ~ mv_binding_spec* ~ ")" ~ body ~ ")" |
+   "(begin" ~  sequence ~ ")" |
+   "(do" ~  "(" ~ iteration_spec* ~ ")" ~
+      "(" ~ test ~ do_result ~ ")" ~
+      command* ~ ")" |
+   "(delay" ~  expression ~ ")" |
+   "(delay-force" ~  expression ~ ")" |
+   "(parameterize" ~  "(" ~ ( "(" ~ expression ~ expression ~ ")" )* ~ ")" ~
+      body ~ ")" |
+   "(guard" ~  "(" ~ identifier ~ cond_clause* ~ ")" ~ body ~ ")" |
    quasiquotation | 
-   "(case-lambda" ~ whitespace+ ~ case_lambda_clause* ~ paren_close
+   "(case-lambda" ~  case_lambda_clause* ~ ")"
 }
 
 cond_clause = {
-   paren_open ~ test ~ sequence ~ paren_close |
-   paren_open ~ test ~ paren_close |
-   paren_open ~ test ~ "=>" ~ recipient ~ paren_close
+   "(" ~ test ~ sequence ~ ")" |
+   "(" ~ test ~ ")" |
+   "(" ~ test ~ "=>" ~ recipient ~ ")"
 }
 
 recipient = { expression }
 case_clause = {
-   paren_open ~ paren_open ~ datum* ~ paren_close ~ sequence ~ paren_close |
-   paren_open ~ paren_open ~ datum* ~ paren_close ~ "=>" ~ recipient ~ paren_close 
+   "(" ~ "(" ~ datum* ~ ")" ~ sequence ~ ")" |
+   "(" ~ "(" ~ datum* ~ ")" ~ "=>" ~ recipient ~ ")" 
 }
 binding_spec = {
-   paren_open ~ identifier ~ expression ~ paren_close 
+   "(" ~ identifier ~ expression ~ ")" 
 }
 mv_binding_spec = {
-   paren_open ~ formals ~ expression ~ paren_close
+   "(" ~ formals ~ expression ~ ")"
 }
 
 iteration_spec = {
-   paren_open ~ identifier ~ init ~ step ~ paren_close |
-   paren_open ~ identifier ~ init ~ paren_close 
+   "(" ~ identifier ~ init ~ step ~ ")" |
+   "(" ~ identifier ~ init ~ ")" 
 }
 
 case_lambda_clause = {
-   paren_open ~ formals ~ body ~ paren_close
+   "(" ~ formals ~ body ~ ")"
 }
 
 init = { expression }
@@ -528,21 +527,21 @@ step = { expression }
 do_result =  { sequence | "" }
 
 macro_use = {
-   paren_open ~ keyword ~ datum* ~ paren_close
+   "(" ~ keyword ~ datum* ~ ")"
 }
 keyword = { identifier }
 
 macro_block = {
-   "(let-syntax" ~ whitespace+ ~ paren_open ~ syntax_spec* ~ paren_close ~ body ~ paren_close |
-   "(letrec-syntax" ~ whitespace+ ~ paren_open ~ syntax_spec* ~ paren_close ~ body ~ paren_close 
+   "(let-syntax" ~  "(" ~ syntax_spec* ~ ")" ~ body ~ ")" |
+   "(letrec-syntax" ~  "(" ~ syntax_spec* ~ ")" ~ body ~ ")" 
 }
 syntax_spec = {
-   paren_open ~ keyword ~ transformer_spec ~ paren_close
+   "(" ~ keyword ~ transformer_spec ~ ")"
 }
 
 includer = {
-   "(include" ~ whitespace+ ~ string+ ~ paren_close |
-   "(include-ci" ~ whitespace+ ~ string+ ~ paren_close
+   "(include" ~  string+ ~ ")" |
+   "(include-ci" ~  string+ ~ ")"
 }
 
 quasiquotation = { quasiquotation_1 }
@@ -552,7 +551,7 @@ qq_template_0 = { expression }
 // TEMPLATE: We're going to use the same template for all the quasiquotation up to level 3.
 // quasiquotation_D = { 
 //    "`" ~ qq_template_D |
-//    "(quasiquote" ~ whitespace+ ~ qq_template_D ~ paren_close 
+//    "(quasiquote" ~  qq_template_D ~ ")" 
 // }
 // qq_template_D = { 
 //    simple_datum |
@@ -561,8 +560,8 @@ qq_template_0 = { expression }
 //    unquotation_D
 // }
 // list_qq_template_D = {
-//    paren_open ~ qq_template_or_splice_D* ~ paren_close |
-//    paren_open ~ qq_template_or_splice_D* ~ "." ~ whitespace+ ~ qq_template_D ~ paren_close |
+//    "(" ~ qq_template_or_splice_D* ~ ")" |
+//    "(" ~ qq_template_or_splice_D* ~ "." ~  qq_template_D ~ ")" |
 //    "'" ~ qq_template_D |
 //    quasiquotation_D+1
 // }
@@ -571,7 +570,7 @@ qq_template_0 = { expression }
 // }
 // unquotation_D = {
 //    "," ~ qq_template_D-1 |
-//    "(unquote" ~ whitespace+ ~ qq_template_D-1 ~ paren_close |
+//    "(unquote" ~  qq_template_D-1 ~ ")" |
 // }
 // qq_template_or_splice_D = {
 //    qq_template_D |
@@ -579,12 +578,12 @@ qq_template_0 = { expression }
 // }
 // splicing_unquotation_D = {
 //    ",@" ~ qq_template_D-1 |
-//    "(unquote-splicing" ~ whitespace+ ~ qq_template_D-1 ~ paren_close
+//    "(unquote-splicing" ~  qq_template_D-1 ~ ")"
 // }
 
 quasiquotation_1 = { 
    "`" ~ qq_template_1 |
-   "(quasiquote" ~ whitespace+ ~ qq_template_1 ~ paren_close 
+   "(quasiquote" ~  qq_template_1 ~ ")" 
 }
 qq_template_1 = { 
    simple_datum |
@@ -593,8 +592,8 @@ qq_template_1 = {
    unquotation_1
 }
 list_qq_template_1 = {
-   paren_open ~ qq_template_or_splice_1* ~ paren_close |
-   paren_open ~ qq_template_or_splice_1* ~ "." ~ whitespace+ ~ qq_template_1 ~ paren_close |
+   "(" ~ qq_template_or_splice_1* ~ ")" |
+   "(" ~ qq_template_or_splice_1* ~ "." ~  qq_template_1 ~ ")" |
    "'" ~ qq_template_1 |
    quasiquotation_2
 }
@@ -603,7 +602,7 @@ vector_qq_template_1 = {
 }
 unquotation_1 = {
    "," ~ qq_template_0 |
-   "(unquote" ~ whitespace+ ~ qq_template_0 ~ paren_close 
+   "(unquote" ~  qq_template_0 ~ ")" 
 }
 qq_template_or_splice_1 = {
    qq_template_1 |
@@ -611,12 +610,12 @@ qq_template_or_splice_1 = {
 }
 splicing_unquotation_1 = {
    ",@" ~ qq_template_0 |
-   "(unquote-splicing" ~ whitespace+ ~ qq_template_0 ~ paren_close
+   "(unquote-splicing" ~  qq_template_0 ~ ")"
 }
 
 quasiquotation_2 = { 
    "`" ~ qq_template_2 |
-   "(quasiquote" ~ whitespace+ ~ qq_template_2 ~ paren_close 
+   "(quasiquote" ~  qq_template_2 ~ ")" 
 }
 qq_template_2 = { 
    simple_datum |
@@ -625,8 +624,8 @@ qq_template_2 = {
    unquotation_2
 }
 list_qq_template_2 = {
-   paren_open ~ qq_template_or_splice_2* ~ paren_close |
-   paren_open ~ qq_template_or_splice_2* ~ "." ~ whitespace+ ~ qq_template_2 ~ paren_close |
+   "(" ~ qq_template_or_splice_2* ~ ")" |
+   "(" ~ qq_template_or_splice_2* ~ "." ~  qq_template_2 ~ ")" |
    "'" ~ qq_template_2 |
    quasiquotation_3
 }
@@ -635,7 +634,7 @@ vector_qq_template_2 = {
 }
 unquotation_2 = {
    "," ~ qq_template_1 |
-   "(unquote" ~ whitespace+ ~ qq_template_1 ~ paren_close
+   "(unquote" ~  qq_template_1 ~ ")"
 }
 qq_template_or_splice_2 = {
    qq_template_2 |
@@ -643,12 +642,12 @@ qq_template_or_splice_2 = {
 }
 splicing_unquotation_2 = {
    ",@" ~ qq_template_1 |
-   "(unquote-splicing" ~ whitespace+ ~ qq_template_1 ~ paren_close
+   "(unquote-splicing" ~  qq_template_1 ~ ")"
 }
 
 quasiquotation_3 = { 
    "`" ~ qq_template_3 |
-   "(quasiquote" ~ whitespace+ ~ qq_template_3 ~ paren_close 
+   "(quasiquote" ~  qq_template_3 ~ ")" 
 }
 qq_template_3 = { 
    simple_datum |
@@ -657,8 +656,8 @@ qq_template_3 = {
    unquotation_3
 }
 list_qq_template_3 = {
-   paren_open ~ qq_template_or_splice_3* ~ paren_close |
-   paren_open ~ qq_template_or_splice_3* ~ "." ~ whitespace+ ~ qq_template_3 ~ paren_close |
+   "(" ~ qq_template_or_splice_3* ~ ")" |
+   "(" ~ qq_template_or_splice_3* ~ "." ~  qq_template_3 ~ ")" |
    "'" ~ qq_template_3 |
    quasiquotation_4
 }
@@ -667,7 +666,7 @@ vector_qq_template_3 = {
 }
 unquotation_3 = {
    "," ~ qq_template_2 |
-   "(unquote" ~ whitespace+ ~ qq_template_2 ~ paren_close 
+   "(unquote" ~  qq_template_2 ~ ")" 
 }
 qq_template_or_splice_3 = {
    qq_template_3 |
@@ -675,7 +674,7 @@ qq_template_or_splice_3 = {
 }
 splicing_unquotation_3 = {
    ",@" ~ qq_template_2 |
-   "(unquote-splicing" ~ whitespace+ ~ qq_template_2 ~ paren_close
+   "(unquote-splicing" ~  qq_template_2 ~ ")"
 }
 
 // Force abort of parsing at this depth.
@@ -683,21 +682,21 @@ quasiquotation_4 = { EOI }
 
 
 transformer_spec = {
-   "(syntax-rules" ~ whitespace+ ~ paren_open ~ identifier* ~ paren_close ~ whitespace+ ~ syntax_rule* ~ paren_close |
-   "(syntax-rules" ~ whitespace+ ~ identifier ~ paren_open ~ identifier* ~ paren_close ~ whitespace+ ~ syntax_rule* ~ paren_close
+   "(syntax-rules" ~  "(" ~ identifier* ~ ")" ~  syntax_rule* ~ ")" |
+   "(syntax-rules" ~  identifier ~ "(" ~ identifier* ~ ")" ~  syntax_rule* ~ ")"
 }
 syntax_rule = {
-   paren_open ~ pattern ~ whitespace+ ~ template ~ paren_close
+   "(" ~ pattern ~  template ~ ")"
 }
 pattern = {
    pattern_identifier |
    "_" |
-   paren_open ~ pattern* ~ paren_close |
-   paren_open ~ pattern+ ~ "." ~ whitespace+ ~ pattern ~ paren_close |
-   paren_open ~ pattern* ~ pattern ~ "..." ~ pattern* ~ paren_close |
-   paren_open ~ pattern* ~ pattern ~ "..." ~ pattern* ~ "." ~ pattern ~ paren_close |
-   "#(" ~ whitespace* ~ pattern* ~ paren_close |
-   "#(" ~ whitespace* ~ pattern* ~ pattern ~ "..." ~ pattern* ~ paren_close 
+   "(" ~ pattern* ~ ")" |
+   "(" ~ pattern+ ~ "." ~  pattern ~ ")" |
+   "(" ~ pattern* ~ pattern ~ "..." ~ pattern* ~ ")" |
+   "(" ~ pattern* ~ pattern ~ "..." ~ pattern* ~ "." ~ pattern ~ ")" |
+   "#(" ~ whitespace* ~ pattern* ~ ")" |
+   "#(" ~ whitespace* ~ pattern* ~ pattern ~ "..." ~ pattern* ~ ")" 
 }
 pattern_datum = { 
    string |
@@ -709,9 +708,9 @@ pattern_datum = {
 
 template = {
    pattern_identifier |
-   paren_open ~ template_element* ~ paren_close |
-   paren_open ~ template_element+ ~ "." ~ whitespace+ ~ template ~ paren_close |
-   "#(" ~ whitespace* ~ template_element* ~ paren_close 
+   "(" ~ template_element* ~ ")" |
+   "(" ~ template_element+ ~ "." ~  template ~ ")" |
+   "#(" ~ whitespace* ~ template_element* ~ ")" 
 }
 template_element = {
    template |
@@ -724,21 +723,21 @@ ellipsis = {"..."}
 underscore = { "_" }
 
 program = {
-   import_declaration+ ~ command_or_definition+
+   import_declaration* ~ command_or_definition+
 }
 command_or_definition = {
-   command |
-   definition |
-   "(begin" ~ whitespace+ ~ command_or_definition+ ~ paren_close
+   command 
+   // | definition
+   // | "(begin" ~  command_or_definition+ ~ ")"
 }
 
 definition = {
-   "(define" ~ whitespace+ ~ identifier ~ whitespace+ ~ expression ~ paren_close |
-   "(define" ~ whitespace+ ~ paren_open ~ identifier ~ def_formals ~ paren_close ~ body ~ paren_close |
+   "(define" ~  identifier ~  expression ~ ")" |
+   "(define" ~  "(" ~ identifier ~ def_formals ~ ")" ~ body ~ ")" |
    syntax_definition |
-   "(define-values" ~ whitespace+ ~ formals ~ body ~ paren_close |
-   "(define-record-type" ~ whitespace+ ~ identifier ~ constructor ~ identifier ~ field_spec* ~ paren_close |
-   "(begin" ~ whitespace+ ~ definition* ~ paren_close
+   "(define-values" ~  formals ~ body ~ ")" |
+   "(define-record-type" ~  identifier ~ constructor ~ identifier ~ field_spec* ~ ")" |
+   "(begin" ~  definition* ~ ")"
 }
 
 def_formals = {
@@ -746,11 +745,11 @@ def_formals = {
    identifier* 
 }
 constructor = {
-   paren_open ~ identifier ~ field_name* ~ paren_close
+   "(" ~ identifier ~ field_name* ~ ")"
 }
 field_spec = {
-   paren_open ~ identifier ~ field_name ~ accessor ~ paren_close |
-   paren_open ~ identifier ~ field_name ~ accessor ~ mutator ~ paren_close
+   "(" ~ identifier ~ field_name ~ accessor ~ ")" |
+   "(" ~ identifier ~ field_name ~ accessor ~ mutator ~ ")"
 }
 field_name = {
    identifier
@@ -762,52 +761,52 @@ mutator = {
    identifier
 }
 syntax_definition = {
-   "(define-syntax" ~ whitespace+ ~ keyword ~ transformer_spec ~ paren_close 
+   "(define-syntax" ~  keyword ~ transformer_spec ~ ")" 
 }
 
 library = {
-   "(define-library" ~ library_name ~ library_declaration* ~ paren_close
+   "(define-library" ~ library_name ~ library_declaration* ~ ")"
 }
 library_name = {
-   paren_open ~ library_name_part+ ~ paren_close 
+   "(" ~ library_name_part+ ~ ")" 
 }
 library_name_part = {
    identifier | 
    uinteger_10
 }
 library_declaration = {
-   "(export" ~ whitespace+ ~ export_spec* ~ paren_close |
+   "(export" ~  export_spec* ~ ")" |
    import_declaration |
-   "(begin" ~ whitespace+ ~ command_or_definition* ~ paren_close |
+   "(begin" ~  command_or_definition* ~ ")" |
    includer |
-   "(include-library-declarations" ~ whitespace+ ~ string+ ~ paren_close |
-   "(cond-expand" ~ whitespace+ ~ cond_expand_clause+  ~ paren_close |
-   "(cond-expand" ~ whitespace+ ~ cond_expand_clause+  ~ "(else" ~ library_declaration* ~ paren_close ~ paren_close 
+   "(include-library-declarations" ~  string+ ~ ")" |
+   "(cond-expand" ~  cond_expand_clause+  ~ ")" |
+   "(cond-expand" ~  cond_expand_clause+  ~ "(else" ~ library_declaration* ~ ")" ~ ")" 
 }
 import_declaration = {
-   "(import" ~ import_set+  ~ paren_close 
+   "(import" ~ import_set+  ~ ")" 
 }
 
 export_spec = {
    identifier |
-   "(rename" ~ whitespace+ ~ identifier ~ whitespace+ ~ identifier ~ paren_close
+   "(rename" ~  identifier ~  identifier ~ ")"
 }
 import_set = {
    library_name |
-   "(only" ~ whitespace+ ~ import_set ~ whitespace+ ~ identifier+ ~ paren_close |
-   "(execpt" ~ whitespace+ ~ import_set ~ whitespace+ ~ identifier+ ~ paren_close |
-   "(prefix" ~ whitespace+ ~ import_set ~ whitespace+ ~ identifier ~ paren_close |
-   "(rename" ~ whitespace+ ~ import_set ~ whitespace+ ~ (paren_open ~ identifier ~ identifier ~ paren_close)+ ~ paren_close 
+   "(only" ~  import_set ~  identifier+ ~ ")" |
+   "(execpt" ~  import_set ~  identifier+ ~ ")" |
+   "(prefix" ~  import_set ~  identifier ~ ")" |
+   "(rename" ~  import_set ~  ("(" ~ identifier ~ identifier ~ ")")+ ~ ")" 
 }
 cond_expand_clause = {
-   paren_open ~ feature_requirement ~ library_declaration* ~ paren_close
+   "(" ~ feature_requirement ~ library_declaration* ~ ")"
 }
 feature_requirement = {
    identifier |
-   "(library" ~ whitespace+ ~ library_name ~ paren_close |
-   "(and" ~ whitespace+ ~ feature_requirement* ~ paren_close |
-   "(or" ~ whitespace+ ~ feature_requirement* ~ paren_close |
-   "(not" ~ whitespace+ ~ feature_requirement ~ paren_close
+   "(library" ~  library_name ~ ")" |
+   "(and" ~  feature_requirement* ~ ")" |
+   "(or" ~  feature_requirement* ~ ")" |
+   "(not" ~  feature_requirement ~ ")"
 }
 
 
