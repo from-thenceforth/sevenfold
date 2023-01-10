@@ -721,7 +721,7 @@ export_spec = {
 import_set = {
    library_name |
    "(only" ~ import_set ~ identifier+ ~ ")" |
-   "(execpt" ~ import_set ~ identifier+ ~ ")" |
+   "(except" ~ import_set ~ identifier+ ~ ")" |
    "(prefix" ~ import_set ~ identifier ~ ")" |
    "(rename" ~ import_set ~ ("(" ~ identifier ~ identifier ~ ")")+ ~ ")"
 }
