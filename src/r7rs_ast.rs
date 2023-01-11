@@ -148,6 +148,25 @@ mod tests {
             Expression::Literal(super::Literal::String("\"foo\"".to_string()))
         );
     }
+
+    #[test]
+    fn test_literal_bools_short_or_long_and_true_or_false() {
+        let tests = [
+            ("#t", true),
+            ("#f", false),
+            ("#true", true),
+            ("#false", false),
+        ];
+        for (input, expected) in tests.iter() {
+            let mut pairs = parser::parse(Rule::expression, input).unwrap();
+            let pair = pairs.next().unwrap();
+            let expression = Expression::from(pair);
+            assert_eq!(
+                expression,
+                Expression::Literal(super::Literal::Bool(*expected))
+            );
+        }
+    }
 }
 #[derive(Debug, PartialEq, Eq)]
 pub struct Operator(Box<Expression>);
