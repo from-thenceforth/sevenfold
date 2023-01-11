@@ -54,6 +54,7 @@ impl CDef {
 pub enum Literal {
     String(String),
     Bool(bool),
+    Char(char),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -91,6 +92,91 @@ impl Expression {
                             Rule::boolean => Expression::Literal(Literal::Bool(
                                 literal.as_span().as_str().to_string() == "#t",
                             )),
+                            // handle character, which has three cases:
+                            // any_character, named_character, hex_character
+                            Rule::character => {
+                                let mut inner = literal.into_inner();
+                                let character = inner.next().unwrap();
+                                // Each character literal has several styles
+                                // any_character prefixed with a #\, e.g. #\a; a named_character, e.g. #\newline; a hex_character code, e.g. #\x0A; a character name, e.g. #\NUL.
+                                match character.as_rule() {
+                                    // strip the #\ prefix from the any_character
+                                    Rule::any_character => {
+                                        dbg!(&character.as_span().as_str().chars().nth(2).unwrap());
+                                        Expression::Literal(Literal::Char(
+                                            character.as_span().as_str().chars().nth(2).unwrap(),
+                                        ))
+                                    }
+                                    Rule::named_character => {
+                                        let mut inner = character.into_inner();
+                                        let named_character = inner.next().unwrap();
+                                        // named characters are defined in the R7RS standard as follows:
+                                        // "alarm" | "backspace" | "delete" | "escape" | "newline" | "null" | "return" | "space" | "tab"
+                                        // So the names have to be translated from #\escape to #\x1B etc, they're not pest Rules but strings
+                                        // to be translated.
+                                        match named_character.as_str() {
+                                            "alarm" => Expression::Literal(Literal::Char('\x07')),
+                                            "backspace" => {
+                                                Expression::Literal(Literal::Char('\x08'))
+                                            }
+                                            "delete" => Expression::Literal(Literal::Char('\x7F')),
+                                            "escape" => Expression::Literal(Literal::Char('\x1B')),
+                                            "newline" => Expression::Literal(Literal::Char('\x0A')),
+                                            "null" => Expression::Literal(Literal::Char('\x00')),
+                                            "return" => Expression::Literal(Literal::Char('\x0D')),
+                                            "space" => Expression::Literal(Literal::Char('\x20')),
+                                            "tab" => Expression::Literal(Literal::Char('\x09')),
+                                            _ => unreachable!(),
+                                        }
+                                    }
+                                    Rule::hex_character => {
+                                        let mut inner = character.into_inner();
+                                        let hex_character = inner.next().unwrap();
+                                        Expression::Literal(Literal::Char(
+                                            char::from_u32(
+                                                u32::from_str_radix(hex_character.as_str(), 16)
+                                                    .unwrap(),
+                                            )
+                                            .unwrap(),
+                                        ))
+                                    }
+                                    _ => unreachable!(),
+                                }
+                            }
+                            /*
+                            Rule::character => {
+                                let mut inner = literal.into_inner();
+                                let character = inner.next().unwrap();
+                                // Each character literal has several styles
+                                // any_character prefixed with a #\, e.g. #\a; a named_character, e.g. #\newline; a hex_character code, e.g. #\x0A; a character name, e.g. #\NUL.
+                                match character.as_rule() {
+                                    Rule::any_character => {
+                                        Expression::Literal(Literal::Char(
+                                            character.as_span().as_str().chars().next().unwrap(),
+                                        ))
+                                    }
+                                    Rule::named_character => {
+                                        let mut inner = character.into_inner();
+                                        let named_character = inner.next().unwrap();
+                                        // named characters are defined in the R7RS standard as follows:
+                                        // "alarm" | "backspace" | "delete" | "escape" | "newline" | "null" | "return" | "space" | "tab"
+                                        // So the names have to be translated from #\escape to #\x1B etc, they're not pest Rules but strings
+                                        // to be translated.
+                                        match named_character.as_str() {
+                                            "alarm" => Expression::Literal(Literal::Char('\x07')),
+                                            "backspace" => Expression::Literal(Literal::Char('\x08')),
+                                            "delete" => Expression::Literal(Literal::Char('\x7F')),
+                                            "escape" => Expression::Literal(Literal::Char('\x1B')),
+                                            "newline" => Expression::Literal(Literal::Char('\x0A')),
+                                            "null" => Expression::Literal(Literal::Char('\x00')),
+                                            "return" => Expression::Literal(Literal::Char('\x0D')),
+                                            "space" => Expression::Literal(Literal::Char('\x20')),
+                                            "tab" => Expression::Literal(Literal::Char('\x09')),
+                                            _ => unreachable!(),
+                                        }
+
+                            }
+                            */
                             _ => unreachable!(),
                         }
                     }
@@ -164,6 +250,70 @@ mod tests {
             assert_eq!(
                 expression,
                 Expression::Literal(super::Literal::Bool(*expected))
+            );
+        }
+    }
+
+    #[test]
+    fn test_literal_chars() {
+        let tests = [
+            ("#\\a", 'a'),
+            ("#\\A", 'A'),
+            ("#\\space", ' '),
+            ("#\\newline", '\n'),
+            // hex
+            ("#\\x20", ' '),
+            ("#\\x0A", '\n'),
+            // long hex
+            ("#\\x00000020", ' '),
+            ("#\\x0000000A", '\n'),
+            // some emoji
+            ("#\\x1F600", '😀'),
+            ("#\\x1F601", '😁'),
+            ("#\\x1F602", '😂'),
+            ("#\\x1F603", '😃'),
+            ("#\\x1F604", '😄'),
+            ("#\\x1F605", '😅'),
+            ("#\\x1F606", '😆'),
+            ("#\\x1F607", '😇'),
+            ("#\\x1F608", '😈'),
+            ("#\\x1F609", '😉'),
+            ("#\\x1F60A", '😊'),
+            ("#\\x1F60B", '😋'),
+            ("#\\x1F60C", '😌'),
+            ("#\\x1F60D", '😍'),
+            ("#\\x1F60E", '😎'),
+            ("#\\x1F60F", '😏'),
+            ("#\\x1F610", '😐'),
+            ("#\\x1F611", '😑'),
+            ("#\\x1F612", '😒'),
+            ("#\\x1F613", '😓'),
+            ("#\\x1F614", '😔'),
+            ("#\\x1F615", '😕'),
+            ("#\\x1F616", '😖'),
+            ("#\\x1F617", '😗'),
+            ("#\\x1F618", '😘'),
+            ("#\\x1F619", '😙'),
+            ("#\\x1F61A", '😚'),
+            ("#\\x1F61B", '😛'),
+            ("#\\x1F61C", '😜'),
+            ("#\\x1F61D", '😝'),
+            ("#\\x1F61E", '😞'),
+            ("#\\x1F61F", '😟'),
+            ("#\\x1F620", '😠'),
+            ("#\\x1F621", '😡'),
+            ("#\\x1F622", '😢'),
+            ("#\\x1F623", '😣'),
+            ("#\\x1F624", '😤'),
+            // Wow copilot that was a lot of emoji
+        ];
+        for (input, expected) in tests.iter() {
+            let mut pairs = parser::parse(Rule::expression, input).unwrap();
+            let pair = pairs.next().unwrap();
+            let expression = Expression::from(pair);
+            assert_eq!(
+                expression,
+                Expression::Literal(super::Literal::Char(*expected))
             );
         }
     }

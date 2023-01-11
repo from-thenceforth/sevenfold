@@ -36,7 +36,7 @@ comment = {
 nested_comment = {
    "#|" ~ comment_text ~ comment_cont* ~ "|#"
 }
-comment_text = { ANY* ~ !("#|" | "|#") }
+comment_text = { !("#|" | "|#") ~ ANY* }
 comment_cont = {
    nested_comment ~ comment_text
 }
@@ -108,7 +108,7 @@ sign_subsequent = {
    initial | explicit_sign | "@"
 }
 symbol_element = {
-   ANY ~ !(vertical_line| "\\") |
+   !(vertical_line| "\\") ~ ANY |
    inline_hex_escape |
    mnemonic_escape |
    "\\|"
@@ -117,9 +117,18 @@ boolean = {
    "#t" | "#f" | "#true" | "#false"
 }
 character = {
-   "#\\" ~ ANY |
-   "#\\" ~ character_name |
-   "#\\x" ~ hex_scalar_value
+   named_character |
+   hex_character |
+   any_character
+}
+any_character = {
+   "#\\" ~ ANY 
+}
+named_character = {
+   "#\\" ~ character_name 
+}
+hex_character = {
+   "#\\" ~ "x" ~ hex_scalar_value
 }
 character_name = {
    "alarm" |
@@ -650,7 +659,7 @@ template_element = {
    template ~ ellipsis
 }
 template_datum = { pattern_datum }
-pattern_identifier = { identifier ~ !(ellipsis) }
+pattern_identifier = { !(ellipsis) ~ identifier  }
 ellipsis = {"..."}
 underscore = { "_" }
 program = {
