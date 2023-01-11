@@ -135,8 +135,8 @@ character_name = {
 string = {
    "\"" ~ string_element* ~ "\""
 }
-string_element = {
-   ANY ~ !( "\"" | "\\") |
+string_element = _{
+   !( "\"" | "\\") ~ ANY |
    mnemonic_escape |
    "\\\"" | // \"
    "\\\\" | // \\

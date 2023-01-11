@@ -75,11 +75,7 @@ impl Expression {
                     Rule::identifier => {
                         Expression::Identifier(expression.as_span().as_str().to_string())
                     }
-                    Rule::literal => {
-                        let mut inner = expression.into_inner();
-                        let literal = inner.next().unwrap();
-                        Expression::Literal(literal.as_str().to_string())
-                    }
+                    Rule::literal => Expression::Literal(expression.as_span().as_str().to_string()),
                     Rule::procedure_call => {
                         let mut inner = expression.into_inner();
                         let operator = inner.next().unwrap();
@@ -118,9 +114,18 @@ mod tests {
         let input = "foo";
         let mut pairs = parser::parse(Rule::expression, input).unwrap();
         let pair = pairs.next().unwrap();
-        dbg!(&pair);
         let expression = Expression::from(pair);
         assert_eq!(expression, Expression::Identifier("foo".to_string()));
+    }
+
+    #[test]
+    fn test_literal_string() {
+        let input = "\"foo\"";
+        let mut pairs = parser::parse(Rule::expression, input).unwrap();
+        let pair = pairs.next().unwrap();
+        dbg!(&pair);
+        let expression = Expression::from(pair);
+        assert_eq!(expression, Expression::Literal("\"foo\"".to_string()));
     }
 }
 #[derive(Debug, PartialEq, Eq)]
