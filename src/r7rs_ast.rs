@@ -51,9 +51,15 @@ impl CDef {
 }
 
 #[derive(Debug, PartialEq, Eq)]
+pub enum Literal {
+    String(String),
+    Bool(bool),
+}
+
+#[derive(Debug, PartialEq, Eq)]
 pub enum Expression {
     Identifier(String),
-    Literal(String),
+    Literal(Literal),
     ProcedureCall(Operator, Vec<Operand>),
     Lambda,
     Conditional,
@@ -75,7 +81,19 @@ impl Expression {
                     Rule::identifier => {
                         Expression::Identifier(expression.as_span().as_str().to_string())
                     }
-                    Rule::literal => Expression::Literal(expression.as_span().as_str().to_string()),
+                    Rule::literal => {
+                        // match the types of literals
+                        let literal = expression.into_inner().next().unwrap();
+                        match literal.as_rule() {
+                            Rule::string => Expression::Literal(Literal::String(
+                                literal.as_span().as_str().to_string(),
+                            )),
+                            Rule::boolean => Expression::Literal(Literal::Bool(
+                                literal.as_span().as_str().to_string() == "#t",
+                            )),
+                            _ => unreachable!(),
+                        }
+                    }
                     Rule::procedure_call => {
                         let mut inner = expression.into_inner();
                         let operator = inner.next().unwrap();
@@ -125,7 +143,10 @@ mod tests {
         let pair = pairs.next().unwrap();
         dbg!(&pair);
         let expression = Expression::from(pair);
-        assert_eq!(expression, Expression::Literal("\"foo\"".to_string()));
+        assert_eq!(
+            expression,
+            Expression::Literal(super::Literal::String("\"foo\"".to_string()))
+        );
     }
 }
 #[derive(Debug, PartialEq, Eq)]
