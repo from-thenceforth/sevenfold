@@ -56,30 +56,30 @@ identifier = {
    vertical_line ~ symbol_element* ~ vertical_line |
    peculiar_identifier
 }
-initial = {
+initial = _{
    letter |
    special_initial
 }
-letter = {
+letter = _{
    'a'..'z' |
    'A'..'Z'
 }
-special_initial = {
+special_initial = _{
    "!" | "$" | "%" | "&" | "*" | "/" | ":" | "<" | "=" | ">" | "?" | "@" | "^" | "_" | "~"
 }
-subsequent = {
+subsequent = _{
    initial | digit | dot_subsequent | special_subsequent
 }
-digit = {
+digit = _{
    '0'..'9'
 }
-hex_digit = {
+hex_digit = _{
    digit | 'a'..'f' | 'A'..'F'
 }
-explicit_sign = {
+explicit_sign = _{
    "+" | "-"
 }
-special_subsequent = {
+special_subsequent = _{
    explicit_sign | "." | "@"
 }
 inline_hex_escape = {
@@ -654,7 +654,8 @@ pattern_identifier = { identifier ~ !(ellipsis) }
 ellipsis = {"..."}
 underscore = { "_" }
 program = {
-   import_declaration* ~ command_or_definition+
+   // import_declaration* ~
+   command_or_definition+
 }
 command_or_definition = {
    command
@@ -719,10 +720,22 @@ export_spec = {
    "(rename" ~ identifier ~ identifier ~ ")"
 }
 import_set = {
-   library_name |
-   "(only" ~ import_set ~ identifier+ ~ ")" |
-   "(except" ~ import_set ~ identifier+ ~ ")" |
-   "(prefix" ~ import_set ~ identifier ~ ")" |
+     library_name
+   | import_only
+   | import_except
+   | import_prefix
+   | import_rename
+}
+import_only = {
+   "(only" ~ import_set ~ identifier+ ~ ")"
+}
+import_except = {
+   "(except" ~ import_set ~ identifier+ ~ ")" 
+}
+import_prefix = {
+   "(prefix" ~ import_set ~ identifier ~ ")" 
+}
+import_rename =   {
    "(rename" ~ import_set ~ ("(" ~ identifier ~ identifier ~ ")")+ ~ ")"
 }
 cond_expand_clause = {
