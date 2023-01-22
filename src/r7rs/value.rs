@@ -194,6 +194,7 @@ mod tests {
         assert_eq!(Value::EofObject.to_string(), "#<eof>");
         assert_eq!(Value::Number(Number::Integer(1)).to_string(), "1");
         assert_eq!(Value::Number(Number::Real(1.0)).to_string(), "1");
+        assert_eq!(Value::Number(Number::Real(1.23)).to_string(), "1.23");
         assert_eq!(
             Value::Number(Number::Rational {
                 numerator: 1,
@@ -203,12 +204,28 @@ mod tests {
             "1/2"
         );
         assert_eq!(
+            Value::Number(Number::Rational {
+                numerator: -1,
+                denominator: 2
+            })
+            .to_string(),
+            "-1/2"
+        );
+        assert_eq!(
             Value::Number(Number::Complex {
                 real: 1.0,
                 imaginary: 2.0
             })
             .to_string(),
             "1+2i"
+        );
+        assert_eq!(
+            Value::Number(Number::Complex {
+                real: 1.0,
+                imaginary: -2.0
+            })
+            .to_string(),
+            "1-2i"
         );
         assert_eq!(Value::Port(Box::new(Port)).to_string(), "#<port>");
         assert_eq!(Value::String("a".to_string()).to_string(), "\"a\"");
